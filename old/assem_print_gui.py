@@ -1,9 +1,10 @@
+
 import sys
 import subprocess
 import os
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QLabel,
-    QFileDialog, QCheckBox, QGroupBox
+    QFileDialog, QCheckBox, QHBoxLayout, QGroupBox
 )
 from PyQt6.QtCore import Qt
 
@@ -27,7 +28,7 @@ class KiCadAssemblyExporter(QWidget):
         self.select_button.clicked.connect(self.select_file)
         layout.addWidget(self.select_button)
 
-        # Plot Layers Group
+        # Options Group: Layers
         layers_group = QGroupBox("Plot Layers")
         layers_layout = QVBoxLayout()
         self.layer_ffab = QCheckBox("F.Fab")
@@ -42,7 +43,7 @@ class KiCadAssemblyExporter(QWidget):
         layers_group.setLayout(layers_layout)
         layout.addWidget(layers_group)
 
-        # Export Options Group
+        # Options Group: Extra Flags
         flags_group = QGroupBox("Options")
         flags_layout = QVBoxLayout()
         self.option_sp = QCheckBox("Sketch Pads on Fab Layers (--sp)")
@@ -51,12 +52,9 @@ class KiCadAssemblyExporter(QWidget):
         self.option_bw.setChecked(True)
         self.option_ibt = QCheckBox("Include Border Title (--ibt)")
         self.option_ibt.setChecked(True)
-        self.option_cdnp = QCheckBox("Cross out DNP Components (--cdnp)")
-        self.option_cdnp.setChecked(True)
         flags_layout.addWidget(self.option_sp)
         flags_layout.addWidget(self.option_bw)
         flags_layout.addWidget(self.option_ibt)
-        flags_layout.addWidget(self.option_cdnp)
         flags_group.setLayout(flags_layout)
         layout.addWidget(flags_group)
 
@@ -106,21 +104,20 @@ class KiCadAssemblyExporter(QWidget):
             self.status_label.setText("❌ No layers selected.")
             return
 
-        # Build CLI command
+        # Build command
         cmd = [
             "kicad-cli", "pcb", "export", "pdf",
             "--output", output_path,
             "--layers", ",".join(layers)
         ]
 
+        # Add optional flags
         if self.option_sp.isChecked():
             cmd.append("--sp")
         if self.option_bw.isChecked():
             cmd.append("--black-and-white")
         if self.option_ibt.isChecked():
             cmd.append("--ibt")
-        if self.option_cdnp.isChecked():
-            cmd.append("--cdnp")
 
         cmd.append(self.kicad_pcb_path)
 
